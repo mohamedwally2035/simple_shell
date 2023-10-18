@@ -71,6 +71,7 @@ typedef struct liststr
  * @cmd_buf: address of the cmd_buf pointer, if chaining
  * @cmd_buf_type: CMD_type ||, &&, ;
  * @histcount: the amount of lines in history
+ * @history: the history node
 */
 
 typedef struct passinfo
@@ -89,10 +90,10 @@ typedef struct passinfo
 	char **environ;
 	int env_changed;
 	int status;
-	int histcount;
 	char **cmd_buf; /* reference to cmd;chain buffer,for memory management */
-	int cmd_buf_type; /* CMD_type ||, &&, ; */
+	int cmd_buf_type;
 	int readfd;
+	int histcount;
 } info_t;
 
 #define INFO_INIT \
