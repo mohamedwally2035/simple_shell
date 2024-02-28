@@ -1,23 +1,18 @@
-/**
- * @file shell.c
- * @brief Main shell functions and command execution.
- */
-
 #include "shell.h"
 
 /**
- * @brief Main shell loop.
+ * @brief Main shell loop
  *
- * @param info The parameter & return info struct.
- * @param av The argument vector from main().
- * @return 0 on success, 1 on error, or error code.
+ * @param info The parameter & return info struct
+ * @param av The argument vector from main()
+ * @return 0 on success, 1 on error, or error code
  */
 int hsh(info_t *info, char **av)
 {
-    ssize_t r = 0;
+    ssize_t read_status = 0;
     int builtin_ret = 0;
 
-    while (r != -1 && builtin_ret != -2)
+    while (read_status != -1 && builtin_ret != -2)
     {
         clear_info(info);
 
@@ -25,9 +20,10 @@ int hsh(info_t *info, char **av)
             _puts("$ ");
 
         _eputchar(BUF_FLUSH);
-        r = get_input(info);
 
-        if (r != -1)
+        read_status = get_input(info);
+
+        if (read_status != -1)
         {
             set_info(info, av);
             builtin_ret = find_builtin(info);
@@ -51,26 +47,22 @@ int hsh(info_t *info, char **av)
     {
         if (info->err_num == -1)
             exit(info->status);
-
         exit(info->err_num);
     }
 
-    return (builtin_ret);
+    return builtin_ret;
 }
 
 /**
- * @brief Finds a builtin command.
+ * @brief Finds a builtin command
  *
- * @param info The parameter & return info struct.
- * @return -1 if builtin not found,
- *         0 if builtin executed successfully,
- *         1 if builtin found but not successful,
- *         -2 if builtin signals exit().
+ * @param info The parameter & return info struct
+ * @return -1 if builtin not found, 0 if builtin executed successfully,
+ *         1 if builtin found but not successful, -2 if builtin signals exit()
  */
 int find_builtin(info_t *info)
 {
     int i, built_in_ret = -1;
-
     builtin_table builtintbl[] = {
         {"exit", _myexit},
         {"env", _myenv},
@@ -92,19 +84,18 @@ int find_builtin(info_t *info)
         }
     }
 
-    return (built_in_ret);
+    return built_in_ret;
 }
 
 /**
- * @brief Finds a command in PATH.
+ * @brief Finds a command in PATH
  *
- * @param info The parameter & return info struct.
- * @return void
+ * @param info The parameter & return info struct
  */
 void find_cmd(info_t *info)
 {
     char *path = NULL;
-    int i, k;
+    int i, num_args = 0;
 
     info->path = info->argv[0];
 
@@ -114,18 +105,14 @@ void find_cmd(info_t *info)
         info->linecount_flag = 0;
     }
 
-    for (i = 0, k = 0; info->arg[i]; i++)
+    for (i = 0; info->arg[i]; i++)
     {
         if (!is_delim(info->arg[i], " \t\n"))
-        {
-            k++;
-        }
+            num_args++;
     }
 
-    if (!k)
-    {
+    if (num_args == 0)
         return;
-    }
 
     path = find_path(info, _getenv(info, "PATH="), info->argv[0]);
 
@@ -136,7 +123,8 @@ void find_cmd(info_t *info)
     }
     else
     {
-        if ((interactive(info) || _getenv(info, "PATH=") || info->argv[0][0] == '/') && is_cmd(info, info->argv[0]))
+        if ((interactive(info) || _getenv(info, "PATH=") || info->argv[0][0] == '/') &&
+            is_cmd(info, info->argv[0]))
         {
             fork_cmd(info);
         }
@@ -149,16 +137,13 @@ void find_cmd(info_t *info)
 }
 
 /**
- * @brief Forks a new process to execute a command.
+ * @brief Forks an exec thread to run cmd
  *
- * @param info The parameter & return info struct.
- * @return void
+ * @param info The parameter & return info struct
  */
 void fork_cmd(info_t *info)
 {
-    pid_t child_pid;
-
-    child_pid = fork();
+    pid_t child_pid = fork();
 
     if (child_pid == -1)
     {
@@ -173,10 +158,7 @@ void fork_cmd(info_t *info)
             free_info(info, 1);
 
             if (errno == EACCES)
-            {
                 exit(126);
-            }
-
             exit(1);
         }
     }
@@ -189,9 +171,7 @@ void fork_cmd(info_t *info)
             info->status = WEXITSTATUS(info->status);
 
             if (info->status == 126)
-            {
                 print_error(info, "Permission denied\n");
-            }
         }
     }
 }
