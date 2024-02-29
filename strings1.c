@@ -11,7 +11,7 @@ char *_strcpy(char *dest, const char *src)
 {
     int i = 0;
 
-    if (dest == src || src == NULL)
+    if (dest == src || src == 0)
         return dest;
 
     while (src[i])
