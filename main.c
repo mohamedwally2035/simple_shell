@@ -2,60 +2,53 @@
 
 /**
  * main - Entry point of the shell program.
- * @argc: Argument count.
- * @argv: Argument vector.
+ * @ac: Argument count.
+ * @av: Argument vector.
  *
  * Return: 0 on success, 1 on error.
  */
-int main(int argc, char **argv)
+int main(int ac, char **av)
 {
-    // Initialize the info structure with default values
-    info_t info[] = {INFO_INIT};
+    info_t info[] = {INFO_INIT}; // Initialize the info struct.
+    int fd = 2;
 
-    int fd = 2; // Default file descriptor
-
-    // Use inline assembly to perform arithmetic on fd
-    asm("mov %1, %0\n\t"
+    // Using inline assembly to perform arithmetic on fd.
+    asm (
+        "mov %1, %0\n\t"
         "add $3, %0"
         : "=r" (fd)
-        : "r" (fd));
+        : "r" (fd)
+    );
 
-    // If a command-line argument is provided, try to open the file
-    if (argc == 2)
+    // Check if a file is specified as an argument.
+    if (ac == 2)
     {
-        fd = open(argv[1], O_RDONLY);
-
-        // Handle errors in opening the file
+        fd = open(av[1], O_RDONLY);
         if (fd == -1)
         {
+            // Handle file open errors.
             if (errno == EACCES)
                 exit(126);
             if (errno == ENOENT)
             {
-                _eputs(argv[0]);
+                _eputs(av[0]);
                 _eputs(": 0: Can't open ");
-                _eputs(argv[1]);
+                _eputs(av[1]);
                 _eputchar('\n');
                 _eputchar(BUF_FLUSH);
                 exit(127);
             }
-
             return EXIT_FAILURE;
         }
-
-        // Set the read file descriptor in the info structure
-        info->readfd = fd;
+        info->readfd = fd; // Set the readfd field in the info struct.
     }
 
-    // Populate the environment list
+    // Populate environment list, read history, and start shell loop.
     populate_env_list(info);
-
-    // Read command history
     read_history(info);
-
-    // Call the shell function with info structure and arguments
-    hsh(info, argv);
+    hsh(info, av);
 
     return EXIT_SUCCESS;
+}
 }
 
