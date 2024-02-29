@@ -1,45 +1,87 @@
 #include "shell.h"
 
-// Initialize specific fields of the info_t structure to empty values
-void reset_info_fields(info_t *info) {
-    info->arg = NULL;
-    info->argv = NULL;
-    info->path = NULL;
-    info->argc = 0;
+/**
+ * clear_info - Initializes info_t struct.
+ * @info: Struct address.
+ */
+void clear_info(info_t *info)
+{
+	info->arg = NULL;
+	info->argv = NULL;
+	info->path = NULL;
+	info->argc = 0;
 }
 
-// Set up the info_t struct with initial data
-void initialize_info(info_t *info, char **av) {
-    info->fname = av[0];
+/**
+ * set_info - Initializes info_t struct.
+ * @info: Struct address.
+ * @av: Argument vector.
+ */
+void set_info(info_t *info, char **av)
+{
+	int i = 0;
 
-    if (info->arg) {
-        info->argv = strtow(info->arg, " \t");
+	info->fname = av[0];
 
-        // Handle potential allocation failure
-        if (!info->argv) {
-            info->argv = allocate_argv_for_single_argument(info->arg);
-        }
+	if (info->arg)
+	{
+		info->argv = strtow(info->arg, " \t");
 
-        info->argc = count_arguments(info->argv);
+		if (!info->argv)
+		{
+			info->argv = malloc(sizeof(char *) * 2);
 
-        apply_aliases(info);
-        apply_variable_replacements(info);
-    }
+			if (info->argv)
+			{
+				info->argv[0] = _strdup(info->arg);
+				info->argv[1] = NULL;
+			}
+		}
+
+		for (i = 0; info->argv && info->argv[i]; i++)
+			;
+
+		info->argc = i;
+
+		replace_alias(info);
+		replace_vars(info);
+	}
 }
 
-// Free allocated memory within the info_t struct
-void deallocate_info_resources(info_t *info, int all) {
-    free(info->argv);
-    info->argv = NULL;
-    info->path = NULL;
+/**
+ * free_info - Frees info_t struct fields.
+ * @info: Struct address.
+ * @all: True if freeing all fields.
+ */
+void free_info(info_t *info, int all)
+{
+	ffree(info->argv);
+	info->argv = NULL;
+	info->path = NULL;
 
-    if (all) {
-        free_if_not_command_buffer(info->arg);
-        free_lists(info);
-        free(info->environ);
-        info->environ = NULL;
-        deallocate_command_buffer(info);
-        close_extra_file_descriptors(info);
-        flush_output();
-    }
+	if (all)
+	{
+		if (!info->cmd_buf)
+			free(info->arg);
+
+		if (info->env)
+			free_list(&(info->env));
+
+		if (info->history)
+			free_list(&(info->history));
+
+		if (info->alias)
+			free_list(&(info->alias));
+
+		ffree(info->environ);
+		info->environ = NULL;
+
+		bfree((void **)info->cmd_buf);
+
+		if (info->readfd > 2)
+			close(info->readfd);
+
+		_putchar(BUF_FLUSH);
+	}
+}
 }
