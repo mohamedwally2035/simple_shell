@@ -57,7 +57,7 @@ char *_strdup(const char *str)
  *
  * Return: Nothing.
  */
-void _puts(const char *str)
+void _put(const char *str)
 {
     int i = 0;
 
