@@ -66,7 +66,7 @@ char *starts_with(const char *haystack, const char *needle)
  *
  * Return: Pointer to the destination buffer.
  */
-char *_strcat(char *dest, const char *src)
+char *_strca(char *dest, const char *srci)
 {
     char *ret = dest;
 
