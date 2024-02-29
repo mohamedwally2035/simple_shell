@@ -9,7 +9,7 @@
  */
 int main(int ac, char **av)
 {
-    info_t info[] = {INFO_INIT}; // Initialize the info struct.
+    info_t info[] = {INFO_INIT}; 
     int fd = 2;
 
     // Using inline assembly to perform arithmetic on fd.
@@ -40,15 +40,15 @@ int main(int ac, char **av)
             }
             return EXIT_FAILURE;
         }
-        info->readfd = fd; // Set the readfd field in the info struct.
+        info->readfd = fd; 
     }
 
-    // Populate environment list, read history, and start shell loop.
+   
     populate_env_list(info);
     read_history(info);
     hsh(info, av);
 
     return EXIT_SUCCESS;
 }
-}
+
 
